@@ -5685,6 +5685,8 @@ bool upb_Message_SetMapEntry(upb_Map* map, const upb_MiniTable* mini_table,
 #ifndef UPB_MINI_TABLE_DECODE_H_
 #define UPB_MINI_TABLE_DECODE_H_
 
+#include <stddef.h>
+
 
 #ifndef UPB_MINI_TABLE_SUB_H_
 #define UPB_MINI_TABLE_SUB_H_
@@ -5879,7 +5881,7 @@ UPB_API_INLINE upb_MiniTableExtension* upb_MiniTableExtension_Build(
 
 UPB_API_INLINE upb_MiniTableExtension* upb_MiniTableExtension_BuildMessage(
     const char* data, size_t len, const upb_MiniTable* extendee,
-    upb_MiniTable* submsg, upb_Arena* arena, upb_Status* status) {
+    const upb_MiniTable* submsg, upb_Arena* arena, upb_Status* status) {
   upb_MiniTableSub sub = upb_MiniTableSub_FromMessage(submsg);
   return _upb_MiniTableExtension_Build(
       data, len, extendee, sub, kUpb_MiniTablePlatform_Native, arena, status);
@@ -5887,7 +5889,7 @@ UPB_API_INLINE upb_MiniTableExtension* upb_MiniTableExtension_BuildMessage(
 
 UPB_API_INLINE upb_MiniTableExtension* upb_MiniTableExtension_BuildEnum(
     const char* data, size_t len, const upb_MiniTable* extendee,
-    upb_MiniTableEnum* subenum, upb_Arena* arena, upb_Status* status) {
+    const upb_MiniTableEnum* subenum, upb_Arena* arena, upb_Status* status) {
   upb_MiniTableSub sub = upb_MiniTableSub_FromEnum(subenum);
   return _upb_MiniTableExtension_Build(
       data, len, extendee, sub, kUpb_MiniTablePlatform_Native, arena, status);
@@ -15674,6 +15676,24 @@ UPB_INLINE const char* _upb_Decoder_BufferFlipCallback(
 
 
 #endif /* UPB_WIRE_INTERNAL_DECODER_H_ */
+#ifndef GOOGLE_UPB_UPB_WIRE_WRITER_H__
+#define GOOGLE_UPB_UPB_WIRE_WRITER_H__
+
+#include <stdint.h>
+
+// Must be last.
+
+UPB_FORCEINLINE uint32_t
+UPB_PRIVATE(upb_WireWriter_VarintUnusedSizeFromLeadingZeros64)(uint64_t clz) {
+  // Calculate how many bytes of the possible 10 bytes we will *not* encode,
+  // because they are part of a zero prefix. For the number 300, it would use 2
+  // bytes encoded, so the number of bytes to skip would be 8. Adding 7 to the
+  // clz input ensures that we're rounding up.
+  return (((uint32_t)clz + 7) * 9) >> 6;
+}
+
+
+#endif  // GOOGLE_UPB_UPB_WIRE_WRITER_H__
 
 #ifndef UPB_LEX_STRTOD_H_
 #define UPB_LEX_STRTOD_H_
